@@ -1,29 +1,10 @@
 from database import Database
 from helper.writeAJson import writeAJson
+from product_analyzer import ProductAnalyzer
+from helper.writeAJson import writeAJson
 
 db = Database(database="mercado", collection="compras")
-# db.resetDatabase()
 
-# 1- Média de gasto total:
-# result = db.collection.aggregate([
-#    {"$unwind": "$produtos"},
-#    {"$group": {"_id": "$cliente_id", "total": {"$sum": {"$multiply": ["$produtos.quantidade", "$produtos.preco"]}}}},
-#    {"$group": {"_id": None, "media": {"$avg": "$total"}}}
-# ])
-
-# writeAJson(result, "Média de gasto total")
-
-# # 2- Cliente que mais comprou em cada dia:
-# result = db.collection.aggregate([
-#     {"$unwind": "$produtos"},
-#     {"$group": {"_id": {"cliente": "$cliente_id", "data": "$data_compra"}, "total": {"$sum": {"$multiply": ["$produtos.quantidade", "$produtos.preco"]}}}},
-#     {"$sort": {"_id.data": 1, "total": -1}},
-#     {"$group": {"_id": "$_id.data", "cliente": {"$first": "$_id.cliente"}, "total": {"$first": "$total"}}}
-# ])
-
-# writeAJson(result, "Cliente que mais comprou em cada dia")
-
-# 3- Produto mais vendido:
 result = db.collection.aggregate([
     {"$unwind": "$produtos"},
     {"$group": {"_id": "$produtos.descricao", "total": {"$sum": "$produtos.quantidade"}}},
@@ -32,3 +13,21 @@ result = db.collection.aggregate([
 ])
 
 writeAJson(result, "Produto mais vendido")
+
+analyzer = ProductAnalyzer(database_name="mercado", collection_name="compras")
+
+# Total de vendas por dia
+sales_per_day = analyzer.total_sales_per_day()
+writeAJson(sales_per_day, "Total de Vendas por Dia")
+
+# Produto mais vendido
+most_sold_product = analyzer.most_sold_product()
+writeAJson(most_sold_product, "Produto Mais Vendido")
+
+# Cliente que mais gastou
+highest_spending_customer = analyzer.highest_spending_customer()
+writeAJson(highest_spending_customer, "Cliente que Mais Gastou")
+
+# Produtos vendidos acima de uma unidade
+products_above_one_unit = analyzer.products_sold_above_one_unit()
+writeAJson(products_above_one_unit, "Produtos Vendidos Acima de Uma Unidade")
